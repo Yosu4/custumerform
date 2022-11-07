@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org">
+<head>
+<meta charset="ISO-8859-1">
+<title>Insert title here</title>
+	<link rel="stylesheet" type="text/css" href="webjars/bootstrap/3.3.7/css/bootstrap.min.css" />
+	<script type="text/javascript" th:src="@{/webjars/bootstrap/3.3.7/js/bootstrap.min.js}"></script>
+	<script type="text/javascript" th:src="@{/webjars/jquery/3.2.1/jquery.min.js/}"></script>
+</head>
+<body>
+<div class="container">
+	<p class="h2">Registration Employee</p>
+	<div role="alert" class="alert alert-danger" id="emailalreadyexistid" hidden>
+	  <span>
+	    <p>Email Already Exist</p>
+	  </span>
+	</div>
+	<div role="alert" class="alert alert-primary" id="formsuccessid" hidden>
+	  <span>
+	    <p>Your form has been successfully input</p>
+	  </span>
+	</div>
+	<div role="alert" class="alert alert-warning" id="invalidemailid" hidden>
+	  <span>
+	    <p>Your Email Is Invalid. Example: example@example.com</p>
+	  </span>
+	</div>
+	<div role="alert" class="alert alert-warning" id="invalidphoneid" hidden>
+	  <span>
+	    <p>Your Phone Is Invalid. Example : 7776712850</p>
+	  </span>
+	</div>
+	<div role="alert" class="alert alert-warning" id="invalidpostcodeid" hidden>
+	  <span>
+	    <p>Your Postcode Is Invalid. Example : E34DB</p>
+	  </span>
+	</div>
+	<div id="feedback">
+		</div>
+	<form method="POST" id="loginformcustomer">
+		  <label for="sel1">Title:</label><br>
+		  <select class="form-control" name="title" id="title" required="required">
+		    <option>Mr</option>
+		    <option>Mrs</option>
+		    <option>Ms</option>
+		  </select><br>
+		
+		  <label>First Name:</label><br>
+		  <input type="text" name="first_name" id="first_name" required="required" class="form-control"><br>
+		  
+		  <label>Last name:</label><br>
+		  <input type="text" name="last_name" id="last_name" required="required" class="form-control"><br>
+		  
+		  <label>Address Line 1:</label><br>
+		  <input type="text" name="address_line_1" id="address_line_1" required="required" class="form-control"><br>
+		  
+		  <label>Address Line 2:</label><br>
+		  <input type="text" name="address_line_2" id="address_line_2" class="form-control"><br>
+		  
+		  <label>Email Address:</label><br>
+		  <input type="text" name="email_address" id="email_address" required="required" class="form-control"><br>
+		  
+		  <label>City:</label><br>
+		  <input type="text" name="city" id="city" class="form-control"><br>
+		  
+		  <label>Postcode:</label><br>
+		  <input type="text" name="postcode" id="postcode" required="required" class="form-control"><br>
+		  
+		  <label>Phone Number:</label><br>
+		  <input type="text" name="phone_number" id="phone_number" class="form-control"><br>
+		  
+		  <button class="btn btn-primary" type="submit" id="btnformid">Submit</button>
+	</form>
+	
+</div>
+</body>
+<script type="text/javascript">
+	$(document).ready(function () {
+	    $("#loginformcustomer").submit(function (event) {
+	    	$('#formsuccessid').hide();
+	    	$('#emailalreadyexistid').hide();
+	    	$('#invalidemailid').hide();
+	    	$('#invalidphoneid').hide();
+	    	$('#invalidpostcodeid').hide();
+	        event.preventDefault();
+	        
+	        var postcodepattern = /^[a-z]{1,2}\d[a-z\d]?\s*\d[a-z]{2}$/i;
+	        var postcodevalue = document.getElementById('postcode').value;
+	        var validpostcode = postcodepattern.test(postcodevalue);
+	        
+	        var phonenopattern = /^\+?([0-9]{2})\)?[-. ]?([0-9]{4})[-. ]?([0-9]{4})$/;
+	        var phonenumber = document.getElementById('phone_number').value;
+	        var validphonenumber = phonenopattern.test(phonenumber);
+			
+	        var emailaddress = document.getElementById('email_address').value;
+	        var pattern = /\S+@\S+\.\S+/;
+	        var validemail = pattern.test(emailaddress);
+	        if(!validemail){
+	        	document.getElementById('email_address').value='';
+	        	$('#invalidemailid').show();
+	        } else if (!validphonenumber && phonenumber.length != 0) {
+	        	document.getElementById('phone_number').value='';
+	        	$('#invalidphoneid').show();
+	        } else if (!validpostcode) {
+	        	document.getElementById('postcode').value='';
+	        	$('#invalidpostcodeid').show();
+	        } else {
+	        	ajaxsubmitform();
+	   
+	        }
+	        
+	    });
+		
+	    function ajaxsubmitform(){
+	    	var loginFormObject = {
+	        		title : $("#title").val(),
+	        		first_name : $("#first_name").val(),
+	        		last_name : $("#last_name").val(),
+	        		address_line_1 : $("#address_line_1").val(),
+	        		address_line_2 : $("#address_line_2").val(),
+	        		email_address : $("#email_address").val(),
+	        		city : $("#city").val(),
+	        		postcode : $("#postcode").val(),
+	        		phone_number : $("#phone_number").val()
+	        }
+			console.log(loginFormObject);
+	        $("#btnformid").prop("disabled", true);
+	        
+	        $.ajax({
+	            type: "POST",
+	            contentType: "application/json",
+	            url: window.location + "saveCustomer",
+	            data: JSON.stringify(loginFormObject),
+	            cache: false,
+	            timeout: 600000,
+	            success: function (data) {
+	            	console.log("SUCCESS : ", data);
+	            	if(data == 'emailalreadyexist'){
+	                	$('#emailalreadyexistid').show();
+	            	} else if (data == 'success') {
+	                	$('#formsuccessid').show();
+	                	document.getElementById("loginformcustomer").reset();
+	            	} else {
+	            		$('#invalidemailid').show();
+	            	}
+	            	$("#btnformid").prop("disabled", false);
+	            }
+	        });
+	    }
+	});
+</script>
+</html>
